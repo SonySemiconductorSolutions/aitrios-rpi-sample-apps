@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "highvis"
+version = "0.1.0"
+description = "Highvis demo using Raspberry Pi AI Camera"
+authors = ["Karl Komierowski <karl.komierowski@sony.com>", "Stijn Woestenborghs <stijn.woestenborghs@sony.com>"]
+readme = "README.md"
+license = "Apache-2.0"
+
+[tool.poetry.scripts]
+highvis = 'highvis.main:start_highvis_demo'
+
+[tool.poetry.dependencies]
+python = "^3.11"
+scipy = "^1.11.3"
+lapx = "^0.5.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

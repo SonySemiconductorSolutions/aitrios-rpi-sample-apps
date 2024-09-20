@@ -1,0 +1,63 @@
+@startuml
+box "Highvis Application"
+    participant "Main"              as highvis_main
+    participant "Annotator"         as annotator
+    database    "Event detector"    as event_detector
+    database    "Overlay matcher"   as object_matcher
+    database    "Tracker"           as tracker
+    control     "IMX streamer"      as imx_frames
+    control     "Picamera2"         as picam2
+end box
+
+box Libcamera #LightBlue
+    control     "Lib Camera"     as libcamera
+end Box
+
+box AI Camera #LightYellow
+control     imx500     as imx500_hw
+end Box
+
+== Init ==
+highvis_main -> imx_frames : Path to AI model
+imx_frames -> picam2: Path to AI model
+picam2 -> libcamera: AI model
+libcamera -> imx500_hw: AI model
+
+== Stream ==
+
+loop Until break
+    imx500_hw -> libcamera : Output tensor\nHighres image
+    libcamera -> picam2 : Output tensor\nHighres image
+    activate picam2
+        note over picam2: pre_callback
+        picam2 -> imx_frames : Queue Output tensor
+        autoactivate on
+        imx_frames -> highvis_main : Decoded Output tensor
+        group Process stream
+                highvis_main -> tracker : Decoded Output tensor
+                return Decoded Output tensor\n + tracker id
+
+                highvis_main -> object_matcher : Decoded Output tensor\n + tracker id
+                return Matched objects
+
+
+                highvis_main -> event_detector : Matched objects
+                return Result: {missing_vest,\ntotal,changed}
+                
+            end
+                return Annotator object with result and callback
+                highvis_main -->  imx_frames: Queue\nAnnotator callback 
+                imx_frames --> picam2: Queue\nAnnotator callback 
+
+                picam2 -> annotator: Annotate hires image
+                return
+                 
+                
+
+            
+        
+    deactivate picam2
+end
+
+@enduml
+

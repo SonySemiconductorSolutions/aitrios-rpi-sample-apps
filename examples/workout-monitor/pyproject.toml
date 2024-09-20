@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "workout-monitor"
+version = "0.1.0"
+description = ""
+authors = ["Patrick Johnson <patrick.johnson@sony.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+lapx = "^0.5.9.post1"
+scipy = "^1.14.0"
+matplotlib = "^3.9.2"
+PyYAML = "^6.0.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+[tool.poetry.scripts]
+workout-monitor = 'workout_monitor.app_workout:start_workout_demo'
