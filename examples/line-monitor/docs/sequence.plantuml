@@ -1,0 +1,47 @@
+@startuml
+
+box "Line-Monitor Application"
+    participant "Main"                              as line_monitor
+    participant "Annotator"                         as annotator
+    control     "FSM"                               as fsm
+    participant "Output\nTensor\nDecoder"           as classification_decoder
+    control     "Picamera2"                         as picam2
+end box
+
+box Libcamera #LightBlue
+    control     "Lib Camera"                        as libcamera
+end Box
+
+box Hardware #LightYellow
+control "imx500"                                    as imx500_hw
+end Box
+
+== Init ==
+line_monitor -> picam2 : Path to AI model
+picam2 -> libcamera: AI model
+libcamera -> imx500_hw: AI model
+
+== Stream ==
+
+loop Until break
+    imx500_hw -> libcamera : Output tensor\nHighres image
+    autoactivate on
+    libcamera -> picam2 : Output tensor\nHighres image
+        note over picam2: pre_callback
+        picam2 -> line_monitor : Output tensor\nHighres image
+        
+        line_monitor -> classification_decoder : Output tensor
+        return Decoded Metadata
+    
+        line_monitor -> fsm : Tick(Metadata)
+        return Result
+
+        line_monitor -> annotator: Highres image, Result
+        return Annotated highres image
+        note over line_monitor: Print the\nresult.
+    return
+    note over picam2: Display the\nresult.
+    
+end
+
+@enduml

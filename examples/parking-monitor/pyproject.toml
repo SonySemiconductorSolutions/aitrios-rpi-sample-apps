@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "parking-monitor"
+version = "0.1.0"
+description = ""
+authors = ["Patrick Johnson <patrick.johnson@sony.com>", "Karl Komierowski <karl.komierowski@sony.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+lapx = "^0.5.9.post1"
+scipy = "^1.14.0"
+matplotlib = "^3.9.2"
+PyYAML = "^6.0.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+[tool.poetry.scripts]
+parking-monitor = 'parking_monitor.app_parking_monitor:start_parking_monitor_demo'
+parking-pts-selector = 'parking_monitor.app_pts_selector:start_pts_demo'
