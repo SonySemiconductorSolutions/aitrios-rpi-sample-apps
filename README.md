@@ -21,6 +21,17 @@ After this step it is recommended to read the specific readme file from the exam
 
 ## Models
 
-Most models in this repository are generic from the provided model zoo. The tutorials on this (TODO: update) [link](https://draft-aitrios-portal.wpp.developer.sony.com/en/raspberrypi-ai-camera/tutorials#secondary-menu-desktop) describes how to retrain a model for custom use.
+Most models in this repository are generic from the provided [model zoo](https://github.com/raspberrypi/imx500-models/tree/main).
 
+Models used in the applications are: 
+- **Highvis** - Uses a Custom trained Nanodet Model
+- **Line Monitoring** - Uses a Custom Classification Model
 
+To convert you own models follow our [MCT Tutorials](https://github.com/sony/model_optimization/tree/main/tutorials/notebooks/imx500_notebooks) to quantize your model. 
+Then once  the model has been quantized it is time to convert it and package it to be able to run on this platform. The [tutorial](https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/develop/ai-tutorials/prepare-and-deploy-ai-models-tutorial?version=2024-09-27&progLang=) explains the process to convert a ```model_name.keras``` or ```model_name.onnx``` to ```model_name.rpk```.
+
+## Notice
+
+### Security
+
+Please read the Site Policy of GitHub and understand the usage conditions.

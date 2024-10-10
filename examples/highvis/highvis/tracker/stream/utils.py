@@ -27,7 +27,7 @@ from picamera2.devices.imx500 import IMX500
 from picamera2.devices.imx500.postprocess_nanodet import postprocess_nanodet_detection
 
 from collections import deque
-
+import json
 last_detection = None
 
 
@@ -72,16 +72,13 @@ class IMX500Receiver:
         new_bbox = np.empty((0, 4))
 
         for row in boxes:
-            scaled_box = self.imx500.convert_inference_coords(row, metadata, self.picam2)
-            absolute_box = np.array([scaled_box.x, scaled_box.y, scaled_box.x + scaled_box.width, scaled_box.y + scaled_box.height])
+            x, y, w, h = self.imx500.convert_inference_coords(row, metadata, self.picam2)
+            absolute_box = np.array([x, y, x+w, y+h])
             new_bbox = np.vstack([new_bbox, absolute_box])
 
-        bbox = new_bbox
+        last_detection = np.column_stack((new_bbox, scores, classes))
 
-        ret = np.column_stack((bbox, scores, classes))
-        last_detection = ret
-
-        return ret
+        return last_detection
 
     def picam_callback(self, request):
         fps = self._get_fps()
