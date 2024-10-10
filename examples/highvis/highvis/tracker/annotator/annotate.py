@@ -52,7 +52,7 @@ class BoxAnnotator:
         self,
         color: Union[Color, ColorPalette] = ColorPalette.default(),
         thickness: int = 2,
-        text_color: Color = Color.black(),
+        text_color: Color = Color.red(),
         text_scale: float = 1,
         text_thickness: int = 1,
         text_padding: int = 10,
