@@ -26,6 +26,9 @@ Most models in this repository are generic from the provided [model zoo](https:/
 Models used in the applications are: 
 - **Highvis** - Uses a Custom trained Nanodet Model
 - **Line Monitoring** - Uses a Custom Classification Model
+- **Parking Monitoring** - Uses Nanodet with postprocessing included
+- **Queue Monitoring** - Uses Nanodet with postprocessing included
+- **Workout Monitoring** - Uses HigherhrNet, pose estimation 
 
 To convert you own models follow our [MCT Tutorials](https://github.com/sony/model_optimization/tree/main/tutorials/notebooks/imx500_notebooks) to quantize your model. 
 Then once  the model has been quantized it is time to convert it and package it to be able to run on this platform. The [tutorial](https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/develop/ai-tutorials/prepare-and-deploy-ai-models-tutorial?version=2024-09-27&progLang=) explains the process to convert a ```model_name.keras``` or ```model_name.onnx``` to ```model_name.rpk```.
