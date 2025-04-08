@@ -1,42 +1,64 @@
-# Queue Monitoring
+<div align="center">
 
-## Installation
+<img src="assets/queue.png" alt="Alt Text" width="400" height="300">
 
-Create a venv (virtual environment) with:
+</div>
+
+<div align="center">
+
+# Queue Monitor
+
+</div>
+
+
+[![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://docs.astral.sh/uv/)
+
+
+Queue Monitor is an edge application to track people in queues to help optimize queue management to reduce waiting times and enhance efficiency. Uses Object Detection and can be applied in retail, airports, and banks, and can also be used to analyze car traffic queues to help reduce traffic congestion in real time.
+
+## 🚀 Installation and Start
+
+Before running the parking_monitor application create a virtual environment inside the application's directory
+
 ```
-$ python3 -m venv venv --system-site-packages
-$ source venv/bin/activate
-$ cd [THIS_REPO]
-$ pip install -e .
-$ sudo apt-get install python3-pil python3-pil.imagetk
+# create virtual environment using uv
+$ uv venv --system-site-packages
 ```
-## Queue Monitor 
-Queue Monitor. An edge application to track people in queues to help optimize queue management to reduce waiting times and enhance efficiency. Uses Object Detection and can be applied in retail, airports, and banks, and can also be used to analyze car traffic queues to help reduce traffic congestion in real time.
-### Models
-Model used in this example is an Nanodet Object Detection model to provide boundary boxes. To run the application you can use a model already converted on [Rasberry Pi's model zoo](https://github.com/raspberrypi/imx500-models/blob/main/imx500_network_nanodet_plus_416x416_pp.rpk) 
+> [!IMPORTANT] 
+> #### App Points Selector
+> To change the queue areas, edit the example.json to add and edit the point areas or use app_pts_selector.py to draw queue areas directly on an image using the cameras view. This app will also normalize the points to use for with application module library. To launch pts_selector:
+>```
+>$ uv run app_pts_selector.py --filename example.json
+>```
+> To use, click the take image button and start drawing the areas you wish to draw. Only supports areas with 4 points. Then Save to json file to keep your changes.
+>
+>Requirments to run:
+>```
+>sudo apt-get install python3-pil python3-pil.imagetk
+>```
 
-### Application
+Then to run the application:
+```
+# Installs the pyproject.toml settings and starts the app
+$ uv run app.py --json-file example.json
+```
+
+### 🧠 Models Used
+
+Model used in this example is an Nanodet Object Detection model to provide boundary boxes. You can get a model already converted on [Rasberry Pi's model zoo](https://github.com/raspberrypi/imx500-models/blob/main/imx500_network_nanodet_plus_416x416_pp.rpk) or find other object detection models.
+
+### ⚙️ Changing Settings
+
 Sample Application is configured to look at people, however to configure it to look at other object you can change the class ID or add multiple to detect multiple classes in a queue. Application needs a .json file to run where you store the x and y coords for the queue spaces. Format is shown in example.json provided.
 
-#### Queue Monitor Args Options
+#### 📝 Queue Monitor Args Options
 ```
---model                            Path of the model                                       [required]
---fps                              Maximum frames per second
 --json-file                        Json file containing bboxes of queues                   [required]
---box-min-confidence               Confidence thershold for bounding box predictions
---iou-thereshold                   IoU thershold for Non-Maximum Suppressions (NMS)
---max-out-detection                Maximum number of output detections to keep after NMS
-```
-To run:
-
-```
-queue-monitor --model network-file-location.rpk --json-file example.json
 ```
 :warning: **Running a new example with new model for the first time can take a few minutes for the new model to be uploaded.
 
 To change the queue spaces, edit the example.json to add and edit the queue areas
 
-## Issues
-Knows issue of ImportError: cannot import name 'ImageTK'
-To fix it "sudo apt-get install python3-pil python3-pil.imagetk"
+:warning: **Running a new example with new model for the first time can take a few minutes for the new model to be uploaded.
 

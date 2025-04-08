@@ -1,19 +1,13 @@
-[tool.poetry]
+[project]
 name = "line-monitor"
-version = "0.1.0"
-description = ""
-authors = ["Karl Komierowski <karl.komierowski@sony.com>"]
+version = "2.0.0"
+description = "Line monitor demo using Raspberry Pi AI Camera"
+authors = [{name="Sony Semiconductor Solutions Corp"}]
 readme = "README.md"
-packages = [{include = "line_monitor"}]
 license = "Apache-2.0"
+requires-python = "==3.11.*"
 
-[tool.poetry.dependencies]
-python = "^3.11"
-python-dateutil = "^2.9"
+dependencies = ["modlib"]
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.scripts]
-line-monitor = 'line_monitor.main:start'
+[tool.uv.sources]
+modlib = { git = "https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library", branch = "main" }

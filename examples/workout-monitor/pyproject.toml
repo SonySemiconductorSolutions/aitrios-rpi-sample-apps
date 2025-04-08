@@ -1,20 +1,13 @@
-[tool.poetry]
+[project]
 name = "workout-monitor"
-version = "0.1.0"
-description = ""
-authors = ["Patrick Johnson <patrick.johnson@sony.com>"]
+version = "2.0.0"
+description = "Workout monitor demo using Raspberry Pi AI Camera"
+authors = [{name="Sony Semiconductor Solutions Corp"}]
 readme = "README.md"
+license = "Apache-2.0"
+requires-python = "==3.11.*"
 
-[tool.poetry.dependencies]
-python = "^3.11"
-lapx = "^0.5.9.post1"
-scipy = "^1.14.0"
-matplotlib = "^3.9.2"
-PyYAML = "^6.0.2"
+dependencies = ["modlib"]
 
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-[tool.poetry.scripts]
-workout-monitor = 'workout_monitor.app_workout:start_workout_demo'
+[tool.uv.sources]
+modlib = { git = "https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library", branch = "main" }

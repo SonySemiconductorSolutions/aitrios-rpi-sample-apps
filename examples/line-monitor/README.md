@@ -1,43 +1,64 @@
-# Line-Monitor: Advanced Object Classification and Production Line-Monitoring
+<div align="center">
 
-## Installation and start
+https://github.com/user-attachments/assets/fd892694-8521-4c02-a6a7-debaa5510a08
 
-### Training a custom model using Neurala Brain Builder
-This example has been using the Neurala Brain Builder to train a custom classification model.
-The data set used is provided in the [dataset_solderpoints.zip](./assets/dataset_solderpoints.zip).
+</div>
 
+<div align="center">
+
+# Line Monitor
+
+</div>
+
+[![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://docs.astral.sh/uv/)
+
+Line-Monitor transforms production line monitoring and object classification, providing a smarter, more efficient way to ensure quality and operational excellence. With its advanced AI-driven analysis, this application is a crucial tool for modern production facilities aiming for high performance and superior quality control.
+
+## 🚀 Installation and Start
+
+### 🧠 Training the Custom Model
+This application uses a classification model, we have been using the [Brain Builder](https://developer.aitrios.sony-semicon.com/en/studio/brain-builder) to train the custom classification model easily. Using a different model architecture is possible, you may need to change some of the application code to get the correct output tensors formatted correctly. 
+
+#### 📚 Our Dataset
+The data set used is provided in the [training_dataset_nuts_and_bolts.zip](./assets/training_dataset_nuts_and_bolts.zip).
+The provided dataset is very basic with not too much variation in the images.
+The dataset can be extended using the [provided augumentation script](../../tools/dataset-extender/README.md).
+This will generate more images with more variation that will in turn render a more general model capable of correctly classifying objects. 
+
+#### ✨ Brain Builder Training 
+You can follow this [tutorial](https://developer.aitrios.sony-semicon.com/en/posts/quick-walkthrough-of-classifier-task-with-brain-builder) to help you create the model using Brain builder with the free trial. 
+
+#### 🛠️ Export and Package
+
+Once you have exported from Brain builder as a "Static Classifier" it has to be converted and packaged using the provided tools for the AI Camera, [quick guide on how to package a model](https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/develop/ai-tutorials/prepare-and-deploy-ai-models-tutorial?version=2024-11-21&progLang=).
+
+
+### 💻 Run Application
 Once the model has been trained, and exported as "Static Classifier" it has to be converted and packaged using the provided tools for the AI Camera.
 
-Both the ```labels.txt``` and the ```network.rpk``` has to be specified in the automatically generated ```settings.json```.
-For example like this:
-
+Before running the line-monitor application you need to create the network folder inside the application's directory
 ```
-...
-    "AI": {
-        "Model": "networks/imx500_network_solderpoints.rpk",
-        "Labels": "networks/labels.txt"
-    }
-...
+$ mkdir network
+$ cp -v [MODEL_PATH]/model_name.rpk line-monitor/network
+$ cp -v [LABELS_PATH]/labels.txt line-monitor/network
 ```
 
-Create a venv (virtual environment) with:
+Then create a virtual environment with uv and run the application:
 ```
-$ python3 -m venv venv --system-site-packages
-$ source venv/bin/activate
-$ pip install -e [PATH_TO_THIS_REPO]
+$ uv venv --system-site-packages
+$ uv run app.py
 ```
 
-Start app:
-```
-$ line-monitor
-```
 :warning: **Running a new example with new model for the first time can take a few minutes for the new model to be uploaded.
 
-### How-to
+<details>
+<summary> 👉 For more information on How To </summary>
 
-For a quick how to guide refere to the [HOWTO](./HOWTO.md).
+For a quick how to guide on how to get Line-monitoring working. [HOWTO](./HOWTO.md).
+</details>
 
-**Application Overview:**
+## **Application Overview:**
 
 The Line-Monitor is an innovative application designed to enhance efficiency and quality control in production environments. Leveraging a robust classification AI model, Line-Monitor analyzes streams of metadata to accurately identify objects passing through a production line. This intelligent system operates seamlessly with a state machine, ensuring precise and real-time analysis of each item.
 
@@ -68,4 +89,3 @@ The Line-Monitor is an innovative application designed to enhance efficiency and
 - **Packaging:** Verifies packaging integrity and correctness, classifying defective packages and identifying common issues.
 - **Food and Beverage:** Ensures that products are correctly processed and packaged, identifying and categorizing any defects.
 
-Line-Monitor transforms production line monitoring and object classification, providing a smarter, more efficient way to ensure quality and operational excellence. With its advanced AI-driven analysis, this application is a crucial tool for modern production facilities aiming for high performance and superior quality control.
