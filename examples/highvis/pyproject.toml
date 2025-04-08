@@ -1,19 +1,13 @@
-[tool.poetry]
+[project]
 name = "highvis"
-version = "0.1.0"
+version = "2.0.0"
 description = "Highvis demo using Raspberry Pi AI Camera"
-authors = ["Karl Komierowski <karl.komierowski@sony.com>", "Stijn Woestenborghs <stijn.woestenborghs@sony.com>"]
+authors = [{name="Sony Semiconductor Solutions Corp"}]
 readme = "README.md"
 license = "Apache-2.0"
+requires-python = "==3.11.*"
 
-[tool.poetry.scripts]
-highvis = 'highvis.main:start_highvis_demo'
+dependencies = ["modlib"]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-scipy = "^1.11.3"
-lapx = "^0.5.5"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.uv.sources]
+modlib = { git = "https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library", branch = "main" }
