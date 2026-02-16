@@ -37,3 +37,7 @@ The final result will be placed in the folder ```output```.
 The folders ```train```, ```val``` and ```test``` can be used as training data for [Brain Builder](https://developer.aitrios.sony-semicon.com/en/studio/brain-builder) where we train and quantize the model easily.
 
 
+## License
+IMX500 Sample Applications is licensed under Apache License Version 2.0. By contributing to the project, you agree to the license and copyright terms therein and release your contribution under these terms.
+
+<a href="https://www.apache.org/licenses/LICENSE-2.0"><img src="https://img.shields.io/badge/license-Apache%202.0-blue" /></a>

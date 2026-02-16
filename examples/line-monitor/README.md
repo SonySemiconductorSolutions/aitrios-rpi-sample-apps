@@ -1,6 +1,6 @@
 <div align="center">
 
-https://github.com/user-attachments/assets/fd892694-8521-4c02-a6a7-debaa5510a08
+<img src="assets/line-monitor.gif" alt="Alt Text" width="400" height="300">
 
 </div>
 
@@ -18,36 +18,35 @@ Line-Monitor transforms production line monitoring and object classification, pr
 ## 🚀 Installation and Start
 
 ### 🧠 Training the Custom Model
-This application uses a classification model, we have been using the [Brain Builder](https://developer.aitrios.sony-semicon.com/en/studio/brain-builder) to train the custom classification model easily. Using a different model architecture is possible, you may need to change some of the application code to get the correct output tensors formatted correctly. 
+This application uses a classification model. To train your own classification model follow our comprehensive Jupyter notebook tutorial that walks you through training a MobileNet classifier model from scratch and converting it for the IMX500 chip in your AI Camera: [Train mobilenet with custom dataset](https://github.com/SonySemiconductorSolutions/aitrios-rpi-tutorials-ai-model-training/blob/main/notebooks/mobilenet-rps/custom_mobilenet.ipynb)
+
+The output from the last step of training and conversion is a quantized model and some files generated during conversion. Use the generated file `packerOut.zip` for the next step.  
 
 #### 📚 Our Dataset
 The data set used is provided in the [training_dataset_nuts_and_bolts.zip](./assets/training_dataset_nuts_and_bolts.zip).
 The provided dataset is very basic with not too much variation in the images.
-The dataset can be extended using the [provided augumentation script](../../tools/dataset-extender/README.md).
+The dataset can be extended using the [provided augmentation script](../../tools/dataset-extender/README.md).
 This will generate more images with more variation that will in turn render a more general model capable of correctly classifying objects. 
 
-#### ✨ Brain Builder Training 
-You can follow this [tutorial](https://developer.aitrios.sony-semicon.com/en/posts/quick-walkthrough-of-classifier-task-with-brain-builder) to help you create the model using Brain builder with the free trial. 
 
-#### 🛠️ Export and Package
+#### 🛠️ Package Model
 
-Once you have exported from Brain builder as a "Static Classifier" it has to be converted and packaged using the provided tools for the AI Camera, [quick guide on how to package a model](https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/develop/ai-tutorials/prepare-and-deploy-ai-models-tutorial?version=2024-11-21&progLang=).
+Once you have your converted model it has to be packaged using the provided tools for the AI Camera, [quick guide on how to package a model](https://developer.aitrios.sony-semicon.com/en/docs/raspberry-pi-ai-camera/imx500-packager?version=2025-09-30&progLang=). However, to convert a model quickly we will use Modlib and upload the model.
 
 
 ### 💻 Run Application
 Once the model has been trained, and exported as "Static Classifier" it has to be converted and packaged using the provided tools for the AI Camera.
 
 Before running the line-monitor application you need to create the network folder inside the application's directory
-```
-$ mkdir network
-$ cp -v [MODEL_PATH]/model_name.rpk line-monitor/network
-$ cp -v [LABELS_PATH]/labels.txt line-monitor/network
+```bash
+mkdir network
+cp -v [MODEL_PATH]/packerOut.zip line-monitor/network
+cp -v [LABELS_PATH]/labels.txt line-monitor/network
 ```
 
 Then create a virtual environment with uv and run the application:
-```
-$ uv venv --system-site-packages
-$ uv run app.py
+```bash
+uv run app.py
 ```
 
 :warning: **Running a new example with new model for the first time can take a few minutes for the new model to be uploaded.
@@ -89,3 +88,7 @@ The Line-Monitor is an innovative application designed to enhance efficiency and
 - **Packaging:** Verifies packaging integrity and correctness, classifying defective packages and identifying common issues.
 - **Food and Beverage:** Ensures that products are correctly processed and packaged, identifying and categorizing any defects.
 
+## License
+IMX500 Sample Applications is licensed under Apache License Version 2.0. By contributing to the project, you agree to the license and copyright terms therein and release your contribution under these terms.
+
+<a href="https://www.apache.org/licenses/LICENSE-2.0"><img src="https://img.shields.io/badge/license-Apache%202.0-blue" /></a>

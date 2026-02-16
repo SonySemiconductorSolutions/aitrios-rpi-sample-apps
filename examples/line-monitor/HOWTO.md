@@ -14,14 +14,14 @@ If it is a good or bad part it is processing or if it is observing the backgroun
 > [!IMPORTANT] 
 > It is crucial to be able to identify the background to be able to distinguish between parts that are moving along a conveyor belt.
 >
->The mappinng is done in the file [\_\_init__.py](fsm/__init__.py).If the file doesn't exist, run this application once and it will be created with default settings.
+>The mapping is done in the file [\_\_init__.py](fsm/__init__.py).If the file doesn't exist, run this application once and it will be created with default settings.
 
 ## 📚 Steps
 
 1. The bolt used in this dataset is an M8x30 material A4 stainless.
 2. The height from the lens to the table is 90mm. The background used is a regular white printer paper.
 3. Start the application and verify that the AI model correctly classifies the object. (see image below).
-4. Move the bold in and out of the cameras field of view to simuilate a conveyor belt. Observe the output in the terminal. Use bolts with and without a nut to get variation in the output.
+4. Move the bold in and out of the cameras field of view to simulate a conveyor belt. Observe the output in the terminal. Use bolts with and without a nut to get variation in the output.
 
 ![Output from line-monitor](assets/example-good.jpg "Example output from line-monitor application.")
 

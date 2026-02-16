@@ -29,8 +29,8 @@ from fsm import FiniteStateMachine, DEFAULT_SETTINGS
 class SolderPointClassifier(Model):
     def __init__(self):
         super().__init__(
-            model_file="./network/network.rpk",
-            model_type=MODEL_TYPE.RPK_PACKAGED,
+            model_file="./network/packerOut.zip",
+            model_type=MODEL_TYPE.CONVERTED,
             color_format=COLOR_FORMAT.RGB,
             preserve_aspect_ratio=False,
         )
@@ -42,6 +42,7 @@ class SolderPointClassifier(Model):
 
 
 def start():
+    #-----Camera and AI setup-----
     device = AiCamera()
     model = SolderPointClassifier()
     device.deploy(model)
@@ -62,6 +63,7 @@ def start():
 
     with device as stream:
         for frame in stream:
+            #-----Detection Filtering-----
             idx = frame.detections.class_id[0]
             ai_result = {
                 "C": idx,
@@ -69,9 +71,9 @@ def start():
                 "P": frame.detections.confidence[0],
                 "T": frame.timestamp,
             }
-
+            #-----Application Logic-----
             result = fsm.tick(ai_result)
-       
+            #-----Display Annotations-----
             if result:
                 if "scan_result" in result:
                     print("panel_info", result["scan_result"])

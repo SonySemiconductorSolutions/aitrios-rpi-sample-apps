@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/highvis.png" alt="Alt Text" width="400" height="300">
+<img src="assets/highvis.gif" alt="Alt Text" width="400" height="300">
 
 
 </div>
@@ -17,14 +17,17 @@
 
 Matching Overlapping Objects with Robust Filtering.
 
-This demo showcases a system designed to match overlapping objects detected by object detection AI model. It includes filtering mechanisms to ensure objects are not lost even if the AI model struggles detecting the objects over a series of continous frames.
-In this particual case the AI model has been trained to detect people and vests.
+This demo showcases a system designed to match overlapping objects detected by object detection AI model. It includes filtering mechanisms to ensure objects are not lost even if the AI model struggles detecting the objects over a series of continuous frames.
+In this particular case the AI model has been trained to detect people and vests.
 
 ## Creating a custom NanoDet model to run this example.
 
 To run this example a custom nanodet object detection model has to be trained. The dataset used is the PPE v.3 from RoboFlow.
-This link to the tutorial that explains the precedure to train a [nanodet object detector](https://github.com/SonySemiconductorSolutions/aitrios-rpi-tutorials-ai-model-training-dev/blob/master/notebooks/nanodet-ppe/custom_nanodet.ipynb).
-Once the model ```nanodet-quant-ppe.keras``` has been created it is time to convert it and package it to be able to run on this platform. The [tutorial](https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/develop/ai-tutorials/prepare-and-deploy-ai-models-tutorial?version=2024-09-27&progLang=) explains the process to convert ```nanodet-quant-ppe.keras``` to ```network.rpk``` that we can upload to the IMX500.
+This link to the tutorial that explains the procedure to train a [nanodet object detector](https://github.com/SonySemiconductorSolutions/aitrios-rpi-tutorials-ai-model-training/blob/main/notebooks/nanodet-ppe/custom_nanodet.ipynb).
+Once the you have a ```packerOut.zip``` and ```labels.txt```  it is time to package it to be able to run on this platform. The [tutorial](https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/develop/ai-tutorials/prepare-and-deploy-ai-models-tutorial) explains the process to convert a model. However to convert a model quickly, we will use modlib and upload the model.
+
+> [!NOTE] 
+> If you wish to use a different model architecture you may have to use a different post processor and color_format. Check out the [post processors](https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library/blob/main/modlib/models/post_processors/post_processors.py) in Modlib to see what one to use for your model 
 
 ## 🚀 Installation and Start
 
@@ -32,17 +35,19 @@ Before running the highvis application, in this application's directory you need
 
 ```
 $ mkdir network
-$ cp -v [MODEL_PATH]/model_name.rpk highvis/network
+$ cp -v [MODEL_PATH]/packerOut.zip highvis/network
 $ cp -v [LABELS_PATH]/labels.txt highvis/network
 ```
 
 Then create a virtual environment with uv and run the application:
 ```
-# create virtual environment using uv
-$ uv venv --system-site-packages
+uv run app.py --model network/packerOut.zip
+```
 
-# Installs the pyproject.toml settings and starts the app
-$ uv run app.py --model network/model_name.rpk
+Or if you wish to save the results to save the output to json file to continue development further:
+
+```
+uv run app-json.py --model network/packerOut.zip
 ```
 
 ### 🧠 Model Used
@@ -50,6 +55,9 @@ $ uv run app.py --model network/model_name.rpk
 - **NanoDet Model**:
   - NanoDet is a FCOS-style one-stage anchor-free object detection model which using Generalized Focal Loss as classification and regression loss.
 
+#### 📝 Highvis Args Options
+
+`--model <path>`     _(required)_ : Path to custom trained highvis model, must be packerOut.zip file
 
 :warning: **Running a new example with new model for the first time can take a few minutes for the new model to be uploaded.
 
@@ -76,3 +84,8 @@ $ uv run app.py --model network/model_name.rpk
 
 
 This architecture ensures robust tracking and accurate object matching even in challenging scenarios where objects may overlap or be intermittently lost by the detection model. The combination of advanced detection models, effective tracking, and intelligent filtering makes this system reliable for real-world applications.
+
+## License
+IMX500 Sample Applications is licensed under Apache License Version 2.0. By contributing to the project, you agree to the license and copyright terms therein and release your contribution under these terms.
+
+<a href="https://www.apache.org/licenses/LICENSE-2.0"><img src="https://img.shields.io/badge/license-Apache%202.0-blue" /></a>

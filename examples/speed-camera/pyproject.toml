@@ -1,0 +1,11 @@
+[project]
+name = "speed-camera"
+version = "1.0.0"
+description = "Speed camera Application that calculates the real world speed of objects"
+authors = [{name="Sony Semiconductor Solutions Corp"}]
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.11,<3.14"
+
+dependencies = ["modlib==1.3.1"]
+
