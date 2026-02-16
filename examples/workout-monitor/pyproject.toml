@@ -1,13 +1,11 @@
 [project]
 name = "workout-monitor"
-version = "2.0.0"
+version = "2.1.0"
 description = "Workout monitor demo using Raspberry Pi AI Camera"
 authors = [{name="Sony Semiconductor Solutions Corp"}]
 readme = "README.md"
 license = "Apache-2.0"
-requires-python = "==3.11.*"
+requires-python = ">=3.11,<3.14"
 
-dependencies = ["modlib"]
+dependencies = ["modlib==1.3.1"]
 
-[tool.uv.sources]
-modlib = { git = "https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library", branch = "main" }

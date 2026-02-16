@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/pull_ups.png" alt="Alt Text" width="400" height="300">
+<img src="assets/workout.gif" alt="Alt Text" width="400" height="300">
 
 
 </div>
@@ -21,24 +21,23 @@ Type of workout poses to detect **pullup, pushup, abworkout, squat** and can cha
 
 ## 🚀 Installation and Start
 
-Before running the workout-monitor application, create a virtual environment inside the application's directory with uv.
-```
-# create virtual environment using uv
-$ uv venv --system-site-packages
-```
+Before running the workout-monitor application, ensure you are inside this applications directory
 
-Then run the application:
+Then using uv to run the application, which will install the pyproject.toml and start the application:
 ```
-# Installs the pyproject.toml settings and starts the app
-$ uv run app.py --exercise squat
+uv run app.py --exercise squat
 ```
 
 ### 🧠 Models Used
-Model used in this example is Higherhrnet Model to provide both boundary boxes and keypoints to the application. You can get a converted model on Raspberry Pi models [Raspberry Pi Model Zoo](https://github.com/raspberrypi/imx500-models/blob/main/imx500_network_higherhrnet_coco.rpk) for Pose Estimation.
+Model used in this example is Posenet Model to provide both boundary boxes and keypoints to the application. You can get a converted model on Raspberry Pi models [Raspberry Pi Model Zoo](https://github.com/raspberrypi/imx500-models/blob/main/imx500_network_posenet.rpk) for Pose Estimation.
 
 ### 📝 Args Options
-```
---exercise              Type of exercise to monitor            options: [pullup, pushup, abworkout, squat]      
-```
+
+`--exercise <exercise>` _(optional)_ : Type of exercise to monitor. Options: [pullup, pushup, abworkout, squat]     
 
 :warning: **Running a new example with new model for the first time can take a few minutes for the new model to be uploaded.
+
+## License
+IMX500 Sample Applications is licensed under Apache License Version 2.0. By contributing to the project, you agree to the license and copyright terms therein and release your contribution under these terms.
+
+<a href="https://www.apache.org/licenses/LICENSE-2.0"><img src="https://img.shields.io/badge/license-Apache%202.0-blue" /></a>

@@ -15,55 +15,32 @@
 #
 
 # ----------------------IMPORTS--------------------------
-import json
 import argparse
 import numpy as np
-import cv2
-#--------------------MODLIB IMPORTS---------------------------
+
+# --------------------MODLIB IMPORTS---------------------------
 from modlib.apps.annotate import ColorPalette, Annotator
-from modlib.apps.area import Area
 from modlib.devices import AiCamera
+from modlib.devices.frame import ROI
 from modlib.models.zoo import NanoDetPlus416x416
 from modlib.apps.tracker.byte_tracker import BYTETracker
-from typing import Tuple, Optional
-from modlib.devices.frame import Frame
+from configurator import CVMenuStateMachine, config
 
 
-# custom annotate area
-def custom_annotate_area(
-        frame: Frame, area: Area, color: Tuple[int, int, int], annotator: Annotator, label: Optional[str] = None
-    ) -> np.ndarray:
-       
-        overlay = frame.image.copy()
-        h, w, _ = frame.image.shape
-        resized_points = np.empty(area.points.shape, dtype=np.int32)
-        resized_points[:, 0] = (area.points[:, 0] * w).astype(np.int32)
-        resized_points[:, 1] = (area.points[:, 1] * h).astype(np.int32)
-        resized_points = resized_points.reshape((-1, 1, 2))
+def parse_roi(roi_str: str) -> ROI:
+    try:
+        # Split the input and parse the float values
+        values = list(map(float, roi_str.split(",")))
+        if len(values) != 4:
+            raise ValueError
+        return ROI(*values)
+    except ValueError:
+        raise argparse.ArgumentTypeError("ROI must be in the format 'left,top,width,height' with 4 float values.")
 
-        # Draw the area on the image
-        cv2.fillPoly(frame.image, [resized_points], color=color)
-        cv2.addWeighted(overlay, 0.8, frame.image, 0.2, 0, frame.image)
-        cv2.polylines(frame.image, [resized_points], isClosed=True, color=color, thickness=2)
 
-        # Label
-        if label:
-            annotator.set_label(
-                image=frame.image, x=resized_points[0][0][0], y=resized_points[0][0][1], color=color, label=label
-            )
-
-        return frame.image
-
-        
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--json-file",
-        type=str,
-        required=True,
-        default=None,
-        help="Json file containing bboxes of parking spaces",
-    )
+    parser.add_argument("--roi_input", type=parse_roi, default=None, help="Set input tensor ROI (%(default)s).")
     return parser.parse_args()
 
 
@@ -76,64 +53,52 @@ class BYTETrackerArgs:
     mot20: bool = False
 
 
-def json_regions_extraction(json_filename):
-    """
-    Extract queue regions from json file.
-    """
-    with open(json_filename, "r") as json_file:
-        area_pts = json.load(json_file)
-        if len(area_pts) > 0:
-            return area_pts
-        else:
-            raise Exception("Please ensure there are areas to check")
-
-
 def start_parking_management_demo():
+    # -----Camera and AI setup-----
     args = get_args()
-
+    gs = CVMenuStateMachine()
+    roi = config.get_roi()
     model = NanoDetPlus416x416()
     device = AiCamera()
     device.deploy(model)
+    if args.roi_input is not None:
+        roi_it = args.roi_input
+    else:
+        roi_it = roi
 
-    parking_spaces = json_regions_extraction(args.json_file)
-    areas = []
-    for space in parking_spaces:  # Change points to enter in single Areas
-        areas.append(Area(space["points"]))
+    device.set_input_tensor_cropping(tuple(roi_it))
+    device.set_image_cropping(tuple(roi_it))
 
     # Initialize the tracker, this layer will track an object over time. Each object will be assigned a tracker id.
     tracker = BYTETracker(BYTETrackerArgs())
-    annotator = Annotator(
-        color=ColorPalette.default(), thickness=1, text_thickness=1, text_scale=0.4
-    )
+    annotator = Annotator(color=ColorPalette.default(), thickness=1, text_thickness=1, text_scale=0.4)
     class_ids = [2, 5, 7]  # car, bus, truck
     with device as stream:
         for frame in stream:
+            gs.tick(frame)
             occupied = 0
-
-            detections = frame.detections[frame.detections.confidence > 0.20]
+            # -----Detection Filtering-----
+            detections = frame.detections[frame.detections.confidence > 0.5]
             detections = detections[np.isin(detections.class_id, class_ids)]
-
+            # -----Tracker-----
             detections = tracker.update(frame, detections)
+            # -----Display Annotations-----
             labels = [f"{t} {model.labels[c]}: {s:0.2f}" for _, s, c, t in detections]
-            frame.image = annotator.annotate_boxes(
-                frame=frame, detections=detections, labels=labels
-            )
-            
-            for ID, area in enumerate(areas):
+            frame.image = annotator.annotate_boxes(frame=frame, detections=detections, labels=labels, alpha=0.2)
+
+            for ID, area in enumerate(config.get_areas()):
+                # -----Filter Area Detections-----
                 d = detections[area.contains(detections)]
+                # -----Display Areas-----
                 if d:
-                    frame.image = custom_annotate_area(
-                        frame=frame, area=area, color=(0, 0, 255), annotator=annotator
-                    )
+                    frame.image = annotator.annotate_area(frame=frame, area=area, color=(0, 0, 255), alpha=0.2)
                     occupied += 1
                 else:
-                    frame.image = custom_annotate_area(
-                        frame=frame, area=area, color=(0, 255, 0), annotator=annotator
-                    )
+                    frame.image = annotator.annotate_area(frame=frame, area=area, color=(0, 255, 0), alpha=0.2)
 
             text_labels = [
                 "Occupied: " + str(occupied),
-                "Free Spaces: " + str(len(areas) - occupied),
+                "Free Spaces: " + str(len(config.get_areas()) - occupied),
             ]
             for index, label in enumerate(text_labels):
                 annotator.set_label(

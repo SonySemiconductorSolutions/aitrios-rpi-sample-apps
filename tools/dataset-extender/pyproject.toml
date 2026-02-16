@@ -4,7 +4,7 @@ version= "1.0.0"
 description = "Input a dataset that contains a limited amount of images and the dataset-extender will create more artificial manipulated images to simulate different light conditions, angles, sizes and image quality to boost the size of the dataset."
 authors = [{name="Sony Semiconductor Solutions Corp"}]
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.14"
 dependencies = [
     "albumentations>=2.0.0",
     "numpy>=2.2.2",

@@ -19,22 +19,25 @@ import cv2
 import numpy as np
 
 from modlib.devices import AiCamera
-from modlib.models.zoo import Higherhrnet
+from modlib.models.zoo import Posenet
 from modlib.apps.tracker.byte_tracker import BYTETracker
 from modlib.apps.annotate import ColorPalette, Annotator
 from typing import List, Optional
 from modlib.models import Poses
+from modlib.apps.calculate import estimate_angle
+
 from modlib.devices.frame import Frame, IMAGE_TYPE
 
 class BYTETrackerArgs:
-    track_thresh: float = 0.25
-    track_buffer: int = 30
-    match_thresh: float = 0.8
-    aspect_ratio_thresh: float = 3.0
-    min_box_area: float = 1.0
-    mot20: bool = False
+	track_thresh: float = 0.25
+	track_buffer: int = 30
+	match_thresh: float = 0.8
+	aspect_ratio_thresh: float = 3.0
+	min_box_area: float = 1.0
+	mot20: bool = False
 
 # ---------------------------------------------------------------------
+
 def custom_annotate_poses(
         frame: Frame,
         poses: Poses,
@@ -75,8 +78,8 @@ def custom_annotate_poses(
 
         def draw_keypoints(poses, image, pose_idx, keypoint_idx, w, h, threshold=keypoint_score_threshold):
             if poses.keypoint_scores[pose_idx][keypoint_idx] >= threshold:
-                y = int(poses.keypoints[pose_idx][2 * keypoint_idx] * h)
-                x = int(poses.keypoints[pose_idx][2 * keypoint_idx + 1] * w)
+                y = int(poses.keypoints[pose_idx][keypoint_idx][1] * h)
+                x = int(poses.keypoints[pose_idx][keypoint_idx][0] * w)
                 cv2.circle(image, (x, y), keypoint_radius, keypoint_color, -1)
 
         def draw_line(poses, image, pose_idx, keypoint1, keypoint2, w, h, color_index, threshold=keypoint_score_threshold ):
@@ -85,10 +88,10 @@ def custom_annotate_poses(
                 poses.keypoint_scores[pose_idx][keypoint1] >= threshold
                 and poses.keypoint_scores[pose_idx][keypoint2] >= threshold
             ):
-                y1 = int(poses.keypoints[pose_idx][2 * keypoint1] * h)
-                x1 = int(poses.keypoints[pose_idx][2 * keypoint1 + 1] * w)
-                y2 = int(poses.keypoints[pose_idx][2 * keypoint2] * h)
-                x2 = int(poses.keypoints[pose_idx][2 * keypoint2 + 1] * w)
+                y1 = int(poses.keypoints[pose_idx][keypoint1][1] * h)
+                x1 = int(poses.keypoints[pose_idx][keypoint1][0] * w)
+                y2 = int(poses.keypoints[pose_idx][keypoint2][1] * h)
+                x2 = int(poses.keypoints[pose_idx][keypoint2][0] * w)
                 if color_index == 1:
                     color = special_line_color
 
@@ -106,150 +109,135 @@ def custom_annotate_poses(
 
         return frame.image
 
-def estimate_angle(k, focus_points, height, width):
-    """
-    Calculate the angle of the chosen keypoint exercise
-    """
-    p1 = ((k[focus_points[0] * 2 + 1]) * width, (k[focus_points[0] * 2]) * height)
-    p2 = ((k[focus_points[1] * 2 + 1]) * width, (k[focus_points[1] * 2]) * height)
-    p3 = ((k[focus_points[2] * 2 + 1]) * width, (k[focus_points[2] * 2]) * height)
-    if (0.0, 0.0) in [p1, p2, p3]:
-        return
-    p1, p2, p3 = np.array((p1)), np.array(p2), np.array(p3)
-    a1 = (p1) - p2
-    a2 = p3 - p2
-    cos_a = np.dot(a1, a2) / (np.linalg.norm(a1) * np.linalg.norm(a2))
-    keypoint_angle = np.degrees(np.arccos(cos_a))
-    if keypoint_angle > 180.0:
-        keypoint_angle = 360 - keypoint_angle
-    return round(keypoint_angle, 3)
-
 
 def draw_focus_points(frame, keypoints, point_check):
-    """
-    Draw points of focus for the exercise to visulaize them better
-    """
-    image = frame.image
-    for i in range(17):
-        if i in point_check:
-            if keypoints[i * 2] == 0.0 and keypoints[i * 2 + 1] == 0.0:
-                continue
-            x = int(keypoints[i * 2 + 1] * frame.width)
-            y = int(keypoints[i * 2] * frame.height)
-            cv2.circle(image, (x, y), 7, (0, 255, 0), -1, lineType=cv2.LINE_AA)
-    return image
+	"""
+	Draw points of focus for the exercise to visulaize them better
+	"""
+	image = frame.image
+	for i in range(17):
+		if i in point_check:
+			if keypoints[i][0] == 0.0 and keypoints[i][1] == 0.0:
+				continue
+			x = int(keypoints[i][0] * frame.width)
+			y = int(keypoints[i][1] * frame.height)
+			cv2.circle(image, (x, y), 7, (0, 255, 0), -1, lineType=cv2.LINE_AA)
+	return image
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--exercise",
-        type=str,
-        default="pushup",
-        help="Exercise group can be pullup, pushup, abworkout, squat",
-    )
-    return parser.parse_args()
+	parser = argparse.ArgumentParser()
+	parser.add_argument(
+		"--exercise",
+		type=str,
+		default="pushup",
+		help="Exercise group can be pullup, pushup, abworkout, squat",
+	)
+	return parser.parse_args()
 
 
 def get_exercise_ktps(exercise_name):
-    # To add new exercise types add it here
-    if exercise_name in {"pullup", "pushup"}:
-        return [6, 8, 10]
-    if exercise_name == "squat":
-        return [11, 13, 15]
-    if exercise_name == "abworkout":
-        return [5, 11, 13]
-    else:
-        raise Exception("Please ensure exercise is a valid option")
+	# To add new exercise types add it here
+	if exercise_name in {"pullup", "pushup"}:
+		return [6, 8, 10]
+	if exercise_name == "squat":
+		return [11, 13, 15]
+	if exercise_name == "abworkout":
+		return [5, 11, 13]
+	else:
+		raise Exception("Please ensure exercise is a valid option")
 
 
 def start_workout_demo():
-    args = get_args()
-    device = AiCamera()
-    model = Higherhrnet()
-    device.deploy(model)
+	#-----Camera and AI setup-----
+	args = get_args()
+	device = AiCamera()
+	model = Posenet()
+	device.deploy(model)
 
-    pose_up_angle = 145.0
-    pose_down_angle = 100.0
-    focus_keypoints = get_exercise_ktps(args.exercise)
-    tracked_IDs = {}
+	pose_up_angle = 145.0
+	pose_down_angle = 100.0
+	focus_keypoints = get_exercise_ktps(args.exercise)
+	tracked_IDs = {}
 
-    tracker = BYTETracker(BYTETrackerArgs())
-    annotator = Annotator(
-        color=ColorPalette.default(), thickness=1, text_thickness=1, text_scale=0.4
-    )
+	tracker = BYTETracker(BYTETrackerArgs())
+	annotator = Annotator(
+		color=ColorPalette.default(), thickness=1, text_thickness=1, text_scale=0.4
+	)
 
-    with device as stream:
-        for frame in stream:
-            detections = frame.detections[frame.detections.confidence > 0.3]
-            detections = tracker.update(frame, detections)
+	with device as stream:
+		for frame in stream:
+			#-----Detection Filtering-----
+			detections = frame.detections[frame.detections.confidence > 0.3]
+			#-----Tracker-----
+			detections = tracker.update(frame, detections)
+			#-----Application Logic-----
+			for k, s, _, b, t in detections:
+				if t == -1:
+					continue
+				if t not in tracked_IDs:
+					tracked_IDs[t] = [0.0, 0, "-"]  # angle, reps, stage
+				else:
+					person = tracked_IDs.get(t)
+					angle = estimate_angle(
+						k, focus_keypoints, frame.height, frame.width
+					)
+					if angle is None:  # When point is (0,0) use previous good angle
+						angle = person[0]
 
-            for k, s, _, b, t in detections:
-                if t == -1:
-                    continue
-                if str(t) not in tracked_IDs:
-                    tracked_IDs[str(t)] = [0.0, 0, "-"]  # angle, reps, stage
-                else:
-                    person = tracked_IDs.get(str(t))
-                    angle = estimate_angle(
-                        k, focus_keypoints, frame.height, frame.width
-                    )
-                    if angle is None:  # When point is (0,0) use previous good angle
-                        angle = person[0]
+					if args.exercise in {"abworkout", "pullup"}:
+						if angle > pose_up_angle:
+							tracked_IDs[t] = [angle, person[1], "down"]
+						if angle < pose_down_angle and person[2] == "down":
+							tracked_IDs[t] = [angle, person[1] + 1, "up"]
 
-                    if args.exercise in {"abworkout", "pullup"}:
-                        if angle > pose_up_angle:
-                            tracked_IDs[str(t)] = [angle, person[1], "down"]
-                        if angle < pose_down_angle and person[2] == "down":
-                            tracked_IDs[str(t)] = [angle, person[1] + 1, "up"]
+					elif args.exercise in {"pushup", "squat"}:
+						if angle > pose_up_angle:
+							tracked_IDs[t] = [angle, person[1], "up"]
+						if angle < pose_down_angle and person[2] == "up":
+							tracked_IDs[t] = [angle, person[1] + 1, "down"]
 
-                    elif args.exercise in {"pushup", "squat"}:
-                        if angle > pose_up_angle:
-                            tracked_IDs[str(t)] = [angle, person[1], "up"]
-                        if angle < pose_down_angle and person[2] == "up":
-                            tracked_IDs[str(t)] = [angle, person[1] + 1, "down"]
+				if len(tracked_IDs) > 100:  # Pop unused items
+					tracked_IDs.pop(list(tracked_IDs.keys())[0])
+				#-----Display Annotations-----
+				# Draw Angle
+				annotator.set_label(
+					image=frame.image,
+					x=int((b[0]- (b[0] - b[2]))*frame.width),
+                    y=int(b[1]*frame.height),
+					color= (200, 200, 200),
+					label="Angle: " + str(tracked_IDs[t][0]),
+				)
+				# Draw Reps
+				annotator.set_label(
+					image=frame.image,
+					x=int((b[0]- (b[0] - b[2]))*frame.width),
+                    y=int(b[1]*frame.height + 30),
+					color= (200, 200, 200),
+					label="Reps: " + str(tracked_IDs[t][1]),
+				)
+				# Draw Stage
+				annotator.set_label(
+					image=frame.image,
+					x=int((b[0]- (b[0] - b[2]))*frame.width),
+                    y=int(b[1]*frame.height + 60),
+					color= (200, 200, 200),
+					label="Stage: " + str(tracked_IDs[t][2]),
+				)
 
-                if len(tracked_IDs) > 100:  # Pop unused items
-                    tracked_IDs.pop(list(tracked_IDs.keys())[0])
-                
-                # Draw Angle
-                annotator.set_label(
-                    image=frame.image,
-                    x=int(b[1] - (b[1] - b[3])),
-                    y=int(b[0]),
-                    color= (200, 200, 200),
-                    label="Angle: " + str(tracked_IDs[str(t)][0]),
-                )
-                # Draw Reps
-                annotator.set_label(
-                    image=frame.image,
-                    x=int(b[1] - (b[1] - b[3])),
-                    y=int(b[0] + 30),
-                    color= (200, 200, 200),
-                    label="Reps: " + str(tracked_IDs[str(t)][1]),
-                )
-                # Draw Stage
-                annotator.set_label(
-                    image=frame.image,
-                    x=int(b[1] - (b[1] - b[3])),
-                    y=int(b[0] + 60),
-                    color= (200, 200, 200),
-                    label="Stage: " + str(tracked_IDs[str(t)][2]),
-                )
-
-                # Draw Focus Points
-                frame.image = draw_focus_points(frame, k, focus_keypoints)
-
-            frame.image = custom_annotate_poses(
-                frame=frame,
-                poses=detections,
-                keypoint_color = [0, 255, 0], 
-                line_color = [0, 255, 0], 
-                keypoint_score_threshold=0.3,
-            )
-            frame.display()
+				# Draw Focus Points
+				frame.image = draw_focus_points(frame, k, focus_keypoints)
+			
+			frame.image = custom_annotate_poses(
+				frame=frame,
+				poses=detections,
+				keypoint_color = (0, 255, 0), 
+				line_color = (0, 255, 0), 
+				keypoint_score_threshold=0.3,
+			)
+			frame.display()
 
 
 if __name__ == "__main__":
-    start_workout_demo()
-    exit()
+	start_workout_demo()
+	exit()

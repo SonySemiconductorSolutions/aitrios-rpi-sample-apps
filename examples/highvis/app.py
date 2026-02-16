@@ -17,15 +17,13 @@
 import numpy as np
 import argparse
 import os
-import cv2
 
 from modlib.apps.tracker.byte_tracker import BYTETracker
-from modlib.apps.annotate import ColorPalette, Annotator
+from modlib.apps.annotate import ColorPalette, Annotator, Color
 from modlib.devices import AiCamera
-from typing import List, Optional
+from typing import List
 
 from modlib.models.model import COLOR_FORMAT, MODEL_TYPE, Model
-from modlib.devices.frame import Frame, IMAGE_TYPE
 from modlib.models.results import Detections
 from modlib.models.post_processors import pp_od_bscn
 from modlib.apps.matcher import Matcher
@@ -36,8 +34,8 @@ class Custom_Nanodet(Model):
     def __init__(self, custom_model_file, labels):
         super().__init__(
             model_file=custom_model_file,
-            model_type=MODEL_TYPE.RPK_PACKAGED,
-            color_format=COLOR_FORMAT.RGB,
+            model_type=MODEL_TYPE.CONVERTED,
+            color_format=COLOR_FORMAT.BGR,
             preserve_aspect_ratio=False,
         )
         self.labels = np.genfromtxt(labels, dtype=str, delimiter="\n")
@@ -47,66 +45,6 @@ class Custom_Nanodet(Model):
 
     def post_process(self, output_tensors: List[np.ndarray]) -> Detections:
         return pp_od_bscn(output_tensors)
-
-
-def custom_annotate_boxes(
-    frame: Frame,
-    detections: Detections,
-    colour: List[int],
-    annotator: Annotator,
-    labels: Optional[List[str]] = None,
-    skip_label: bool = False,
-) -> np.ndarray:
-    if frame.image_type != IMAGE_TYPE.INPUT_TENSOR:
-        detections.compensate_for_roi(frame.roi)
-
-    h, w, _ = frame.image.shape
-    
-    for i in range(len(detections)):
-        overlay = frame.image.copy()
-        x1, y1, x2, y2 = detections.bbox[i]
-
-        # Rescaling to frame size
-        x1, y1, x2, y2 = (
-            int(x1 * w),
-            int(y1 * h),
-            int(x2 * w),
-            int(y2 * h),
-        )
-
-        cv2.rectangle(
-            img=frame.image,
-            pt1=(x1, y1),
-            pt2=(x2, y2),
-            color=colour,
-            thickness=-1,
-        )
-
-        cv2.addWeighted(
-            overlay,
-            0.8,
-            frame.image,
-            0.2, 
-            0, 
-            frame.image # result is stored here
-        )
-
-        cv2.rectangle(
-            img=frame.image,
-            pt1=(x1, y1),
-            pt2=(x2, y2),
-            color=colour,
-            thickness=2
-        )
-
-        if skip_label:
-            continue
-        label = f"{detections.class_id}" if (labels is None or len(detections) != len(labels)) else labels[i]
-
-        annotator.set_label(image=frame.image, x=x1, y=y1, color=colour, label=label)
-
-    return frame.image
-
 
 class BYTETrackerArgs:
     track_thresh: float = 0.3
@@ -124,9 +62,9 @@ def get_args():
 
 
 def start_highvis_demo():
+    #-----Camera and AI setup-----
     args = get_args()
 
-    # ASSETS_DIR = f"{os.path.dirname(os.path.abspath(args.model))}"
     model = Custom_Nanodet(
         custom_model_file=args.model,
         labels=f"{os.path.dirname(os.path.abspath(args.model))}/labels.txt",
@@ -144,20 +82,19 @@ def start_highvis_demo():
 
     with device as stream:
         for frame in stream:
+            #-----Detection Filtering-----
             detections = frame.detections[frame.detections.confidence > 0.4]
-            detections = tracker.update(frame, detections)
-
-            total_counter.update(detections)
-
             # Split your detections by Classes you wish to detect
-            # person detections
             person_detections = detections[detections.class_id == 1]
-            # safety-equipment detections
             vest_detections = detections[detections.class_id == 7]
-
-            # Match  People with any class detections like a vest
+            #-----Tracker-----
+            detections = tracker.update(frame, detections)
+            #print(detections)
+            total_counter.update(detections)
+            #-----Matcher-----
             matched_people = person_detections[matcher.match(person_detections, vest_detections)]
             matched_counter.update(matched_people)
+            #-----Display Annotations-----
             m_labels = [f"{t}: Compliant     " for _, s, c, t in matched_people]
             p_labels = [f"{t}: Non Compliant" for _, s, c, t in person_detections]
 
@@ -173,20 +110,19 @@ def start_highvis_demo():
                     color=(200, 200, 200),
                     label=label,
                 )
-
-            frame.image = custom_annotate_boxes(
+            annotator.annotate_boxes(
                 frame=frame,
                 detections=person_detections,
-                annotator=annotator,
                 labels=p_labels,
-                colour=[0, 0, 255],
+                color=Color(255, 0, 0),
+                alpha = 0.2,
             )
-            frame.image = custom_annotate_boxes(
+            annotator.annotate_boxes(
                 frame=frame,
                 detections=matched_people,
-                annotator=annotator,
                 labels=m_labels,
-                colour=[0, 255, 0],
+                color=Color(0, 255, 0),
+                alpha = 0.2,
             )
 
             frame.display()

@@ -1,0 +1,10 @@
+[project]
+name = "box-lifting"
+version = "1.0.0"
+description = "Box lifting application that monitors how users pick up objects to prevent injury"
+authors = [{name="Sony Semiconductor Solutions Corp"}]
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.11,<3.14"
+
+dependencies = ["modlib==1.3.1"]
